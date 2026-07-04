@@ -7,11 +7,13 @@ const PIECE_SIZE = 160;
 const canvasEl = document.createElement('canvas');
 const boardSpaceEl = document.getElementById('board-space');
 const gameSpaceEl = document.getElementById('game-space');
+const congratsEl = document.getElementById('congrats');
 const startBtn = document.getElementById('startBtn');
+const playAgainBtn = document.getElementById('playagainBtn');
 const origImage = new Image();
 let dragInfo;
 
-// Start the puzzle
+// Start the puzzle when the window loads
 window.addEventListener('load', () => {
     console.log('Window loaded');
     gameSpaceEl.addEventListener("mousemove", onMouseMoveHandler);
@@ -24,20 +26,11 @@ origImage.src = 'images/image1.jpg';
 startBtn.addEventListener('click', () => {
     document.getElementById('instructions').style.display = 'none';
 });
+playAgainBtn.addEventListener('click', () => {
+    congratsEl.style.display = 'none';
+    initBoard();
+});
 
-const debounce = (func, timeout = 200) => {
-    let timer;
-    return (...args) => {
-        if (!timer) {
-            func.apply(this, args);
-            timer = setTimeout(() => {
-                timer = undefined;
-            }, timeout);
-        }
-    };
-};
-
-let puzzleSlots = [];
 
 /**
  *  Initialize the game board, the puzzle pieces and their slots.
@@ -58,7 +51,7 @@ const initBoard = () => {
 
     // Clear the board space if it's not empty
     document.querySelectorAll(".puzzle-slot,.puzzle-piece").forEach((node) => {
-        gameSpaceEl.removeChild(node);
+        node.remove();
     });
 
     // Slice and dice the image into separate pieces, and create the puzzle bits
@@ -175,7 +168,9 @@ const hasPlayerWon = () => {
     const remainingPieces = getUnanchoredPieces();
     if (remainingPieces.length === 0) {
         // No pieces remain - player has won!
-        // TODO: Reveal "congrats" div, hook up "play again" button
+        // Show the "Congrats" modal with the "Play again" button
+        congratsEl.style.display = "block";
+        congratsEl.classList.add("slidedown");
     }
 };
 
