@@ -50,7 +50,6 @@ body {
 }
 
 #board-space .puzzle-slot {
-    border: 1px solid grey;
     box-sizing: border-box;
     display: inline-block;
     height: var(--piece-size);
@@ -60,6 +59,12 @@ body {
 
 .puzzle-piece {
     position: absolute;
+    user-select: none;
+}
+
+.anchored,
+.dragging {
+    pointer-events: none;
 }
 
 #congrats {

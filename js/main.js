@@ -9,13 +9,15 @@ const boardSpaceEl = document.getElementById('board-space');
 const gameSpaceEl = document.getElementById('game-space');
 const startBtn = document.getElementById('startBtn');
 const origImage = new Image();
+let dragInfo;
 
 // Start the puzzle
 window.addEventListener('load', () => {
     console.log('Window loaded');
-    gameSpaceEl.addEventListener('dragover', onDragOverHandler);
-    gameSpaceEl.addEventListener('drop', onDropHandler);
-    initBoardSlots();
+    gameSpaceEl.addEventListener("mousemove", onMouseMoveHandler);
+    gameSpaceEl.addEventListener("mouseup", onMouseUpHandler);
+    // TODO: Handle window resize!
+    initBoard();
 });
 origImage.crossOrigin = "anonymous";
 origImage.src = 'images/image1.jpg';
@@ -23,9 +25,28 @@ startBtn.addEventListener('click', () => {
     document.getElementById('instructions').style.display = 'none';
 });
 
+const debounce = (func, timeout = 200) => {
+    let timer;
+    return (...args) => {
+        if (!timer) {
+            func.apply(this, args);
+            timer = setTimeout(() => {
+                timer = undefined;
+            }, timeout);
+        }
+    };
+};
+
 let puzzleSlots = [];
 
-const initBoardSlots = () => {
+/**
+ *  Initialize the game board, the puzzle pieces and their slots.
+ *
+ *  TODO: Custom size/piece count?
+ *  TODO: Custom image?
+ */
+const initBoard = () => {
+    // Initial values and settings
     let col = 0, row = 0, pieceId = 0;
     let imgX, imgY, puzzlePiece;
     let imageData;
@@ -40,7 +61,7 @@ const initBoardSlots = () => {
         gameSpaceEl.removeChild(node);
     });
 
-    // While we're still in the image size, slice and dice into separate pieces
+    // Slice and dice the image into separate pieces, and create the puzzle bits
     while ( col * PIECE_SIZE < origImage.width && row * PIECE_SIZE < origImage.height ) {
         imgX = col * PIECE_SIZE;
         imgY = row * PIECE_SIZE;
@@ -49,27 +70,27 @@ const initBoardSlots = () => {
         cContext.drawImage(origImage, imgX, imgY, PIECE_SIZE, PIECE_SIZE, 0, 0, PIECE_SIZE, PIECE_SIZE);
         imageData = canvasEl.toDataURL();
 
-        // Create the puzzle piece element
+        // Create the puzzle piece element (img)
         puzzlePiece = document.createElement('img');
-        puzzlePiece.classList.add('puzzle-piece', 'unanchored');
+        puzzlePiece.classList.add('puzzle-piece');
         puzzlePiece.id = `puzzle-piece-${pieceId}`;
+        puzzlePiece.dataset["target"] = `puzzle-slot-${pieceId}`;
         puzzlePiece.src = imageData;
-        puzzlePiece.draggable = true;
-        puzzlePiece.addEventListener('dragstart', onDragStartHandler, false);
-        puzzlePiece.addEventListener('drag', onDragHandler, false);
-        puzzlePiece.addEventListener('dragend', onDragEndHandler, false);
-        // Randomize the position
+        puzzlePiece.draggable = false;
+        puzzlePiece.addEventListener("mousedown", onMouseDownHandler, false);
+
+        // Randomize the position within the game space before adding it
         puzzlePiece.style.top = Math.floor(Math.random() * (gameSpaceEl.clientHeight - PIECE_SIZE)) + 'px';
         puzzlePiece.style.left = Math.floor(Math.random() * (gameSpaceEl.clientWidth - PIECE_SIZE)) + 'px';
         gameSpaceEl.appendChild(puzzlePiece);
 
         // Create the puzzle slot
         let slot = document.createElement('div');
+        slot.id = `puzzle-slot-${pieceId}`; // This should match "target" in the piece above
         slot.classList.add('puzzle-slot', 'empty');
-        slot.addEventListener('dragover', onAllowDropHandler, false);
-        slot.addEventListener('drop', onDropHandler, false);
         boardSpaceEl.appendChild(slot);
 
+        // Increment, and wrap if we've hit the last of the row
         pieceId++;
         col++;
         if ( col * PIECE_SIZE >= origImage.width ) {
@@ -79,92 +100,82 @@ const initBoardSlots = () => {
     }
 };
 
-const onDragStartHandler = (event) => {
-    // Store some handy info we'll need to handle the dragging and eventual dropping
-    const dragStart = {
-        elementId: event.target.id,
-        dragOffsetX: event.layerX,
-        dragOffsetY: event.layerY
-    }
-    event.dataTransfer.setData('application/json', JSON.stringify(dragStart));
-    event.dataTransfer.setData('text/plain', JSON.stringify(dragStart));
-
-    // Clone the target so we can drag it around the screen instead of the original
-    const dragImage = event.target.cloneNode(true);
-    dragImage.id = "dragimage";
-    dragImage.style.pointerEvents = "none";
-    gameSpaceEl.appendChild(dragImage);
-    gameSpaceEl.classList.add("dragging");
-    event.dataTransfer.setDragImage(event.target, event.layerX, event.layerY);
-
-    // Hide the original until the user is done dragging it around
-    setTimeout(() => {
-        event.target.classList.add("hidden");
-    }, 0);
-};
-
-const onDragHandler = (event) => {
-    // Move our actual element with the cursor
-
-    // !!!! NOTE !!!!
-    // A known 14-year old bug means drag events have pointer X/Y values 
-    // set to 0, making attempting to move the actual element with the mouse
-    // completely useless.
-    //
-    // https://stackoverflow.com/questions/11656061/why-is-event-clientx-incorrectly-showing-as-0-in-firefox-for-dragend-event
-};
-
-const onDragOverHandler = (event) => {
+/**
+ *  Listener on puzzle pieces to begin the dragging
+ */
+const onMouseDownHandler = (event) => {
     event.preventDefault();
 
-    // Workaround for the Firefox bug ... listen for the drag at
-    // the parent element!
-    const dragInfo = JSON.parse(event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain'));
-    const dragImage = document.getElementById("dragimage");
-    if (dragImage) {
+    // Ensure we're dealing with a puzzle piece
+    if (event.target.classList.contains("puzzle-piece")) {
+        // Begin "dragging" the piece
+        dragInfo = {
+            draggingEl: event.target,
+            dragOffsetX: event.offsetX,
+            dragOffsetY: event.offsetY,
+        };
+        event.target.classList.add("dragging");
+    }
+};
+
+/**
+ *  Listen inside the game space for any mouse up, since the dragging piece
+ *  has "pointer-events: none". This makes it easier to see if the player is
+ *  letting go above a puzzle slot, and if it's the target for the piece
+ */
+const onMouseUpHandler = (event) => {
+    // Handle the "drop"
+    if (dragInfo && dragInfo.draggingEl) {
+        if (event.target.id == dragInfo.draggingEl.dataset["target"]) {
+            dragInfo.draggingEl.style.top = 0;
+            dragInfo.draggingEl.style.left = 0;
+            dragInfo.draggingEl.classList.add("anchored");
+            dragInfo.draggingEl.classList.remove("dragging");
+            event.target.appendChild(dragInfo.draggingEl);
+        }
+
+        // Clean up the dragging info
+        dragInfo.draggingEl.classList.remove("dragging");
+        dragInfo = undefined;
+
+        // Check for win condition
+        hasPlayerWon();
+    }
+};
+
+/**
+ *  Listen inside the game space for the mouse movement, but we only do
+ *  anything if there's a piece being dragged. If there is, update its
+ *  position, based on the game space offset.
+ */
+const onMouseMoveHandler = (event) => {
+    if (dragInfo && dragInfo.draggingEl) {
+        // Work out the offset - we might have a puzzle slot as the event target,
+        // in which case we also want to include its offset to the game space
         const offsetX = (event.target.id == gameSpaceEl.id) ? event.offsetX : event.offsetX + event.target.offsetLeft;
         const offsetY = (event.target.id == gameSpaceEl.id) ? event.offsetY : event.offsetY + event.target.offsetTop;
-        dragImage.style.left = (offsetX - dragInfo.dragOffsetX) + "px";
-        dragImage.style.top = (offsetY - dragInfo.dragOffsetY) + "px";
+
+        // Update the position of the piece element
+        dragInfo.draggingEl.style.left = (offsetX - dragInfo.dragOffsetX) + "px";
+        dragInfo.draggingEl.style.top = (offsetY - dragInfo.dragOffsetY) + "px";
     }
 };
 
-const onAllowDropHandler = (event) => {
-    // Hide the default icon indicator
-    event.preventDefault();
+/**
+ *  Return all unanchored puzzle pieces
+ */
+const getUnanchoredPieces = () => {
+    return gameSpaceEl.querySelectorAll('.puzzle-piece:not(.anchored)');
 };
 
-const onDropHandler = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // Pull the info of the piece being dragged
-    const dragInfo = JSON.parse(event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain'));
-    const piece = document.getElementById(dragInfo.elementId);
-    let slot = event.target;
-
-    if ( slot.tagName.toLowerCase() !== 'div' ) {
-        slot = event.target.closest('.puzzle-slot') || event.target.closest('#game-space');
+/**
+ *  Check for win condition - that is, no unanchored pieces remain
+ */
+const hasPlayerWon = () => {
+    const remainingPieces = getUnanchoredPieces();
+    if (remainingPieces.length === 0) {
+        // No pieces remain - player has won!
+        // TODO: Reveal "congrats" div, hook up "play again" button
     }
-    if ( slot.classList.contains('puzzle-slot') ) {
-        piece.style.top = 0;
-        piece.style.left = 0;
-        slot.appendChild(piece);
-    }
-    else {
-        piece.style.top = (event.offsetY - dragInfo.dragOffsetY) + 'px';
-        piece.style.left = (event.offsetX - dragInfo.dragOffsetX) + 'px';
-        gameSpaceEl.appendChild(piece);
-    }
-    document.getElementById("dragimage")?.remove();
-    piece.classList.remove("hidden");
-};
-
-const onDragEndHandler = (event) => {
-    const dragInfo = JSON.parse(event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain'));
-    const piece = document.getElementById(dragInfo.elementId);
-    document.getElementById("dragimage")?.remove();
-    piece.classList.remove("hidden");
-    gameSpaceEl.classList.remove("dragging");
 };
 
