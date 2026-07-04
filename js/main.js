@@ -12,7 +12,7 @@ const origImage = new Image();
 
 // Start the puzzle
 window.addEventListener('load', () => {
-    console.log('Image loaded');
+    console.log('Window loaded');
     gameSpaceEl.addEventListener('dragover', onDragOverHandler);
     gameSpaceEl.addEventListener('drop', onDropHandler);
     initBoardSlots();
@@ -93,14 +93,10 @@ const onDragStartHandler = (event) => {
     const dragImage = event.target.cloneNode(true);
     dragImage.id = "dragimage";
     dragImage.style.pointerEvents = "none";
-    // dragImage.style.top = event.layerY - event.offsetY;
-    // dragImage.style.left = event.layerX - event.offsetX;
     gameSpaceEl.appendChild(dragImage);
     gameSpaceEl.classList.add("dragging");
     event.dataTransfer.setDragImage(event.target, event.layerX, event.layerY);
 
-    // gameSpaceEl.appendChild(event.target);
-    console.log("&piece", event);
     // Hide the original until the user is done dragging it around
     setTimeout(() => {
         event.target.classList.add("hidden");
@@ -130,7 +126,6 @@ const onDragOverHandler = (event) => {
         const offsetY = (event.target.id == gameSpaceEl.id) ? event.offsetY : event.offsetY + event.target.offsetTop;
         dragImage.style.left = (offsetX - dragInfo.dragOffsetX) + "px";
         dragImage.style.top = (offsetY - dragInfo.dragOffsetY) + "px";
-        console.log("dragover", event, dragInfo);
     }
 };
 
@@ -144,7 +139,6 @@ const onDropHandler = (event) => {
     event.stopPropagation();
 
     // Pull the info of the piece being dragged
-    console.log("drop", event);
     const dragInfo = JSON.parse(event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain'));
     const piece = document.getElementById(dragInfo.elementId);
     let slot = event.target;
@@ -170,7 +164,6 @@ const onDragEndHandler = (event) => {
     const dragInfo = JSON.parse(event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain'));
     const piece = document.getElementById(dragInfo.elementId);
     document.getElementById("dragimage")?.remove();
-    console.log("dragend", event);
     piece.classList.remove("hidden");
     gameSpaceEl.classList.remove("dragging");
 };
