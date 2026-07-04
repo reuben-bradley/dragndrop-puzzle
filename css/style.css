@@ -24,6 +24,11 @@ body {
     transform-origin: top;
 }
 
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
 #game-space {
     --piece-size: 160px;
     flex-grow: 1;
@@ -32,6 +37,10 @@ body {
     margin: 0 auto; 
     min-height: 640px;
     position: relative; 
+}
+
+#game-space.dragging .puzzle-piece {
+    pointer-events: none;
 }
 
 #board-space {
