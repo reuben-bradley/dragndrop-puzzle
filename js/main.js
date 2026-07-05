@@ -4,33 +4,46 @@ const MAX_PUZZLE_WIDTH = 640;
 const MAX_PUZZLE_HEIGHT = 480;
 const PIECE_SIZE = 160;
 
-const canvasEl = document.createElement('canvas');
-const boardSpaceEl = document.getElementById('board-space');
-const gameSpaceEl = document.getElementById('game-space');
-const congratsEl = document.getElementById('congrats');
-const startBtn = document.getElementById('startBtn');
-const playAgainBtn = document.getElementById('playagainBtn');
-const origImage = new Image();
+const canvasEl = document.createElement("canvas");
+const puzzleSelectEl = document.getElementById("puzzle-select");
+const boardSpaceEl = document.getElementById("board-space");
+const gameSpaceEl = document.getElementById("game-space");
+const congratsEl = document.getElementById("congrats");
+const playAgainBtn = document.getElementById("playagainBtn");
 let dragInfo;
 
 // Start the puzzle when the window loads
-window.addEventListener('load', () => {
-    console.log('Window loaded');
+window.addEventListener("load", () => {
+    console.log("Window loaded");
+    const puzzleImages = puzzleSelectEl.querySelectorAll("img");
+    puzzleImages.forEach((img) => {
+        img.addEventListener("click", onPuzzleSelectHandler);
+    });
     gameSpaceEl.addEventListener("mousemove", onMouseMoveHandler);
     gameSpaceEl.addEventListener("mouseup", onMouseUpHandler);
     // TODO: Handle window resize!
-    initBoard();
+    //initBoard();
 });
-origImage.crossOrigin = "anonymous";
-origImage.src = 'images/image1.jpg';
-startBtn.addEventListener('click', () => {
-    document.getElementById('instructions').style.display = 'none';
-});
-playAgainBtn.addEventListener('click', () => {
-    congratsEl.style.display = 'none';
-    initBoard();
+playAgainBtn.addEventListener("click", () => {
+    congratsEl.style.display = "none";
+    gameSpaceEl.classList.remove("active");
+    puzzleSelectEl.classList.add("active");
 });
 
+
+/**
+ *  Player has selected a puzzle
+ *
+ */
+const onPuzzleSelectHandler = (event) => {
+    if (event.target.src !== "") {
+        puzzleSelectEl.classList.remove("active");
+        gameSpaceEl.classList.add("active");
+        // This timeout might not be necessary, but let's be sure the 
+        // game space element is fully loaded before mucking about with it
+        setTimeout(() => initBoard(event.target), 0);
+    }
+};
 
 /**
  *  Initialize the game board, the puzzle pieces and their slots.
@@ -38,18 +51,18 @@ playAgainBtn.addEventListener('click', () => {
  *  TODO: Custom size/piece count?
  *  TODO: Custom image?
  */
-const initBoard = () => {
+const initBoard = (origImage) => {
     // Initial values and settings
     let col = 0, row = 0, pieceId = 0;
     let imgX, imgY, puzzlePiece;
     let imageData;
-    let cContext = canvasEl.getContext('2d');
+    let cContext = canvasEl.getContext("2d");
     canvasEl.width = PIECE_SIZE;
     canvasEl.height = PIECE_SIZE;
-    boardSpaceEl.style.width = origImage.width + 'px';
-    boardSpaceEl.style.height = origImage.height + 'px';
+    boardSpaceEl.style.width = origImage.width + "px";
+    boardSpaceEl.style.height = origImage.height + "px";
 
-    // Clear the board space if it's not empty
+    // Clear the board space if it"s not empty
     document.querySelectorAll(".puzzle-slot,.puzzle-piece").forEach((node) => {
         node.remove();
     });
@@ -64,8 +77,8 @@ const initBoard = () => {
         imageData = canvasEl.toDataURL();
 
         // Create the puzzle piece element (img)
-        puzzlePiece = document.createElement('img');
-        puzzlePiece.classList.add('puzzle-piece');
+        puzzlePiece = document.createElement("img");
+        puzzlePiece.classList.add("puzzle-piece");
         puzzlePiece.id = `puzzle-piece-${pieceId}`;
         puzzlePiece.dataset["target"] = `puzzle-slot-${pieceId}`;
         puzzlePiece.src = imageData;
@@ -74,13 +87,13 @@ const initBoard = () => {
 
         // Randomize the position within the game space before adding it
         puzzlePiece.style.top = Math.floor(Math.random() * (gameSpaceEl.clientHeight - PIECE_SIZE)) + 'px';
-        puzzlePiece.style.left = Math.floor(Math.random() * (gameSpaceEl.clientWidth - PIECE_SIZE)) + 'px';
+        puzzlePiece.style.left = Math.floor(Math.random() * (gameSpaceEl.clientWidth - PIECE_SIZE)) + "px";
         gameSpaceEl.appendChild(puzzlePiece);
 
         // Create the puzzle slot
-        let slot = document.createElement('div');
+        let slot = document.createElement("div");
         slot.id = `puzzle-slot-${pieceId}`; // This should match "target" in the piece above
-        slot.classList.add('puzzle-slot', 'empty');
+        slot.classList.add("puzzle-slot", "empty");
         boardSpaceEl.appendChild(slot);
 
         // Increment, and wrap if we've hit the last of the row

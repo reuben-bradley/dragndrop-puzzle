@@ -10,23 +10,35 @@
         <header>
             <h1>Simple Puzzle</h1>
         </header>
-        <section id="game-space">
-            <div id="board-space"></div>
-        </section>
+        <main>
+            <section id="instructions">
+                <h1>How to Play</h1>
+                <ul class="marked">
+                    <li>Select a puzzle image on the right</li>
+                    <li>The puzzle pieces will be scrambled in the play area</li>
+                    <li>Each piece belongs somewhere in the grid</li>
+                    <li>Click and drag each piece to where it belongs</li>
+                </ul>
+                <p><strong>Photos from <a href="https://unsplash.com/">Unsplash</a></strong></p>
+                <ul class="credits">
+                    <li><a href="https://unsplash.com/photos/two-brown-bears-standing-next-to-each-other-in-a-forest-WVTjSmXg3XE">Photo</a> by Cristina Glebova</li>
+                    <li>"<a href="https://unsplash.com/photos/giant-ocean-wave-crashing-with-distant-mount-fuji-WjECuRrxd_c">The Great Wave</a>" - The Metropolitan Museum of Art</li>
+                    <li><a href="https://unsplash.com/photos/skyline-buildings-under-fireworks-display-NRF1IQrwwPs">Photo</a> by Antonio Gabola</li>
+                </ul>
+            </section>
+            <section id="puzzle-select" class="active">
+                <img class="card" src="/images/image1.jpg" alt="A photo of a bear and cub within the woods" />
+                <img class="card" src="/images/image2.jpg" alt="The Great Wave, an iconic piece of Japanese art" />
+                <img class="card" src="/images/image3.jpg" alt="A photo of fireworks over a city skyline across the water" />
+            </section>
+            <section id="game-space">
+                <div id="board-space"></div>
+            </section>
+        </main>
         <div id="congrats">
             <h1>You Win!</h1>
             <h2>Congratulations!</h2>
             <p><input type="button" id="playagainBtn" value="Play Again"></p>
-        </div>
-        <div id="instructions">
-            <h1>How to Play</h1>
-            <ul>
-                <li>The puzzle pieces are scrambled in the piece drawer</li>
-                <li>Each piece belongs somewhere in the grid</li>
-                <li>Click and drag each piece to where it belongs</li>
-            </ul>
-            <p><input type="button" id="startBtn" value="Start!"></p>
-            <p>Photo by <a href="https://unsplash.com/photos/E0su4LQzQ4c">Marco Secchi</a> on <a href="https://unsplash.com/t/animals">Unsplash</a></p>
         </div>
         <script type="text/javascript" src="js/main.js"></script>
     </body>

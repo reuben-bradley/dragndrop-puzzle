@@ -1,13 +1,6 @@
-
-body {
-    background: #eeeeee;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 30px);
-    margin: 0;
-    padding: 15px;
-}
-
+/**
+ * Slide down css animation, used on congrats "modal"
+ */
 @keyframes slidedown {
     0% {
         transform: rotateX(-90deg);
@@ -17,6 +10,53 @@ body {
     }
 }
 
+
+/**
+ * Generic element styling
+ */
+html {
+    font-size: 62.5%;
+}
+
+body {
+    background: #eeeeee;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.4rem;
+    height: calc(100vh - 30px);
+    margin: 0;
+    overflow: hidden;
+    padding: 15px;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul.marked {
+    list-style: disc;
+    padding: 1rem;
+}
+
+ul.credits {
+    font-size: 1.2rem;
+}
+
+ul.credits li {
+    margin-bottom: 0.75rem;
+}
+
+
+/**
+ * Utility classes
+ */
 .slidedown {
     animation-name: slidedown;
     animation-duration: 1s;
@@ -24,14 +64,71 @@ body {
     transform-origin: top;
 }
 
+
+/**
+ * Specific element styling
+ */
+#instructions {
+    border: 2px solid #0000aa;
+    background-color: #ccccff;
+    border-radius: 20px;
+    margin-right: 1.5rem;
+    padding: 0 1rem;
+}
+
+#instructions h1 {
+    text-align: center;
+}
+
+#puzzle-select {
+    display: none;
+    visibility: hidden;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    gap: 2rem;
+    max-width: 75vw;
+    overflow-y: scroll;
+    padding: 1rem;
+}
+
+#puzzle-select.active {
+    display: flex;
+    visibility: visible;
+}
+
+#puzzle-select .card {
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#puzzle-select .card:hover {
+    scale: 1.05;
+}
+
+#puzzle-select img.card:active {
+    scale: 1;
+}
+
+#puzzle-select img {
+    max-width: calc(33% - 1.05rem);
+}
+
 #game-space {
     --piece-size: 160px;
     flex-grow: 1;
-    width: 100%; 
-    min-width: 640px; 
-    margin: 0 auto; 
+    width: 100%;
+    min-width: 640px;
+    margin: 0 auto;
     min-height: 640px;
-    position: relative; 
+    position: relative;
+    display: none;
+    visibility: hidden;
+}
+
+#game-space.active {
+    display: block;
+    visibility: visible;
 }
 
 #board-space {
@@ -71,28 +168,13 @@ body {
     z-index: 99;
 }
 
-#instructions {
-    width: 50%;
-    left: 25%;
-    top: 25%;
-    position: absolute;
-    border: 2px solid #aa0000;
-    background-color: #ffcccc;
-    border-radius: 20px;
-    z-index: 99;
-}
-
-#instructions h1 {
-    text-align: center; 
-}
-
 #congrats p, #instructions p {
     text-align: center;
 }
 
 #congrats input[type=button], #instructions input[type=button] {
-    border: 2px solid #000000; 
-    border-radius: 10px; 
-    font-size: 1.4em; 
-    padding: 5px 20px; 
+    border: 2px solid #000000;
+    border-radius: 10px;
+    font-size: 1.4em;
+    padding: 5px 20px;
 }
