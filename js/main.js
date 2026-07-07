@@ -49,7 +49,6 @@ window.addEventListener("load", () => {
         const maxPieceWidth = origImage.width / totCols;
         const maxPieceHeight = origImage.height / totRows;
         const pieceSize = Math.min(maxPieceWidth, maxPieceHeight);
-        console.log("Loading image", origImage, { totCols, totRows, pieceSize });
 
         // We may have to crop the image horizontally or vertically, so
         // work out the offset we should start at
