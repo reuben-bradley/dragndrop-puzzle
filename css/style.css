@@ -131,6 +131,22 @@ ul.credits li {
     visibility: visible;
 }
 
+#game-return {
+    width: 4rem;
+    height: auto;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#game-return:hover {
+    filter: invert() brightness(60%);
+    scale: 1.25;
+}
+
+img#game-return:active {
+    scale: 1;
+}
+
 #board-space {
     border: 1px solid grey;
     display: flex;

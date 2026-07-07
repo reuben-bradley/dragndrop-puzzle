@@ -21,3 +21,5 @@ Latest
  * Photo by [Joel Ambass](https://unsplash.com/photos/brown-and-green-mountains-under-blue-sky-during-daytime-JXX3mxAEN64)
  * Photo by [Kier in Sight Archives](https://unsplash.com/photos/white-and-brown-concrete-building-9jFPVQzUgNY)
 
+ * Icons from [Remix Icon][https://www.remixicon.com/]
+
